@@ -1,0 +1,10 @@
+version: '3'
+services:
+  log-tailer:
+    build:
+      dockerfile: Dockerfile
+    environment:
+      - LOG_TOKEN=721dad15-0561-437c-9b88-79d3aca4ce01
+      - SEND_LOGS=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
