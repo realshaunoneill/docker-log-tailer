@@ -6,10 +6,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - HOSTNAME=
-      - SEND_LOGS=
-      - LOG_TOKEN=
+      - API_KEY=
       - LOG_REGION=
-      - SILENT_MODE=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:

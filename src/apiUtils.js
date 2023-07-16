@@ -10,13 +10,17 @@ const defaultHeaders = {
     'Accept': 'application/json',
 };
 
-export const doesLogsetExistForHost = async (hostname) => {
+export const getLogsetExistForName = async (name) => {
     const logsets = await getUsersLogsets();
 
-    console.log('logsets', Object.keys(logsets));
-
-    return logsets.some(logset => logset.name.toLowerCase() === hostname.toLowerCase());
+    return logsets.find(logset => logset.name.toLowerCase() === name.toLowerCase());
 }
+
+export const getLogForContainer = async (containerName) => {
+    const logs = await getUsersLogs();
+
+    return logs.find(log => log.name.toLowerCase() === containerName.toLowerCase());
+};
 
 export const createNewLogset = async (logsetName) => {
     const response = await fetch(`${INSIGHT_API_URL}/management/logsets`, {
@@ -26,6 +30,26 @@ export const createNewLogset = async (logsetName) => {
     });
     const json = await response.json();
     return json;
+};
+
+export const createNewLog = async (logName, parentLogsetName) => {
+    const parentLogset = await getLogsetExistForName(parentLogsetName);
+    
+    const response = await fetch(`${INSIGHT_API_URL}/management/logs`, {
+        method: 'POST',
+        headers: defaultHeaders,
+        body: JSON.stringify({
+            logs:{
+                name: logName,
+                logsets_info: [{
+                    id: parentLogset.id,
+                    name: parentLogset.name,
+                }]
+            } 
+        })
+    });
+    const {log} = await response.json();
+    return log;
 };
 
 export const getUsersLogsets = async () => {
@@ -40,6 +64,6 @@ export const getUsersLogs = async () => {
     const response = await fetch(`${INSIGHT_API_URL}/management/logs`, {
         headers: defaultHeaders
     });
-    const json = await response.json();
-    return json;
+    const {logs} = await response.json();
+    return logs;
 };

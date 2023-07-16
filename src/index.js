@@ -4,12 +4,13 @@ import Docker from 'dockerode';
 import Logger from 'r7insight_node';
 
 import {
-    doesLogsetExistForHost,
+    getLogsetExistForName,
+    getLogForContainer,
     createNewLogset,
+    createNewLog,
 } from './apiUtils.js';
 
 const HOSTNAME = process.env.HOSTNAME || os.hostname();
-const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
 
 const LOG_STREAM_OPTIONS = {
@@ -24,25 +25,33 @@ if (!docker) {
     throw new Error('Docker is not defined, is the path correct? Exiting...');
 }
 
-let logger;
-if (!LOG_TOKEN || !LOG_REGION) {
-    console.error('LOG_TOKEN is not defined, logs will not be sent to Rapid7 Insight Platform');
-} else {
-    console.log('LOG_TOKEN is defined, logs will be sent to Rapid7 Insight Platform');
-    logger = new Logger({
-        token: LOG_TOKEN,
-        region: LOG_REGION
-    });
-}
-
-const handleLogs = ({ names, log, image, id, labels }) => {
+const handleLogs = async ({ names, log, image, id, labels }) => {
     // Map through the names and remove any / from the start
     const filteredNames = names.map(name => name.replace('/', ''));
 
-    console.log(`\nContainer: ${filteredNames} - Log: ${log}`);
+    // Check if the log exists in the logset
+    const containerLog = await getLogForContainer(filteredNames[0]);
 
-    if (LOG_TOKEN && LOG_REGION) {
-        logger.info({ image, names: filteredNames, log, id, labels });
+    const logData = JSON.stringify({ image, names: filteredNames, log, id, labels });
+    if (!containerLog) {
+        // Create the log
+        console.log(`Log for ${filteredNames[0]} does not exist, creating...`);
+        const newLog = await createNewLog(filteredNames[0], HOSTNAME);
+
+        console.log('New log', newLog);
+
+        const r7Logger = new Logger({
+            token: newLog.tokens[0],
+            region: LOG_REGION
+        });
+        r7Logger.log(logData);
+    } else {
+        console.log(`Log for ${filteredNames[0]} exists, sending logs...`);
+        const r7Logger = new Logger({
+            token: containerLog.tokens[0],
+            region: LOG_REGION
+        });
+        r7Logger.log(logData);
     }
 };
 
@@ -72,7 +81,7 @@ const run = async () => {
     const containers = await getCurrentContainers();
 
     // Get the current logsets in ops and verify that the container is in the list
-    const doesHostnameLogsetExist = await doesLogsetExistForHost(HOSTNAME);
+    const doesHostnameLogsetExist = await getLogsetExistForName(HOSTNAME);
     if (!doesHostnameLogsetExist) {
         console.log(`Logset for ${HOSTNAME} does not exist, creating...`);
         const res = await createNewLogset(HOSTNAME);
