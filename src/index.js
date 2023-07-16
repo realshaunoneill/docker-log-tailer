@@ -4,7 +4,7 @@ import Docker from 'dockerode';
 import Logger from 'r7insight_node';
 
 import {
-    getLogsetExistForName,
+    getLogsetForName,
     getLogForContainer,
     createNewLogset,
     createNewLog,
@@ -54,7 +54,7 @@ const submitLogs = async ({ names, log, image, id, labels }) => {
     const filteredNames = names.map(name => name.replace('/', ''));
 
     // Check if the log exists in the logset
-    const containerLog = await getLogForContainer(filteredNames[0]);
+    const containerLog = await getLogForContainer(filteredNames[0], HOSTNAME);
 
     const logData = JSON.stringify({ image, names: filteredNames, log, id, labels });
     if (!containerLog) {
@@ -94,7 +94,7 @@ const run = async () => {
     const containers = await getCurrentContainers();
 
     // Get the current logsets in ops and verify that the container is in the list
-    const doesHostnameLogsetExist = await getLogsetExistForName(HOSTNAME);
+    const doesHostnameLogsetExist = await getLogsetForName(HOSTNAME);
     if (!doesHostnameLogsetExist) {
         console.log(`Logset for ${HOSTNAME} does not exist, creating...`);
         const res = await createNewLogset(HOSTNAME);

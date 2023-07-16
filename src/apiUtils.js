@@ -10,16 +10,16 @@ const defaultHeaders = {
     'Accept': 'application/json',
 };
 
-export const getLogsetExistForName = async (name) => {
+export const getLogsetForName = async (name) => {
     const logsets = await getUsersLogsets();
 
     return logsets.find(logset => logset.name.toLowerCase() === name.toLowerCase());
 }
 
-export const getLogForContainer = async (containerName) => {
-    const logs = await getUsersLogs();
+export const getLogForContainer = async (containerName, hostname) => {
+    const logset = await getLogsetForName(hostname);
 
-    return logs.find(log => log.name.toLowerCase() === containerName.toLowerCase());
+    return logset.logs_info.find(log => log.name.toLowerCase() === containerName.toLowerCase());
 };
 
 export const createNewLogset = async (logsetName) => {
@@ -33,7 +33,7 @@ export const createNewLogset = async (logsetName) => {
 };
 
 export const createNewLog = async (logName, parentLogsetName) => {
-    const parentLogset = await getLogsetExistForName(parentLogsetName);
+    const parentLogset = await getLogsetForName(parentLogsetName);
     
     const response = await fetch(`${INSIGHT_API_URL}/management/logs`, {
         method: 'POST',
