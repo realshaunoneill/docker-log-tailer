@@ -5,6 +5,7 @@ services:
     build:
       dockerfile: Dockerfile
     environment:
+      - HOSTNAME=
       - SEND_LOGS=
       - LOG_TOKEN=
       - LOG_REGION=
