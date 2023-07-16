@@ -1,10 +1,13 @@
-# log-tailer
+# Docker Log Tailer  :whale:
 [![Docker Image CI](https://github.com/realshaunoneill/docker-log-tailer/actions/workflows/docker-image.yml/badge.svg)](https://github.com/realshaunoneill/docker-log-tailer/actions/workflows/docker-image.yml)
 [![Github Source](https://img.shields.io/badge/source-github-orange)](https://github.com/realshaunoneill/cloudflare-ddns)
 [![Docker Image Size](https://img.shields.io/docker/image-size/realshaunoneill/docker-log-tailer/latest)](https://hub.docker.com/r/realshaunoneill/docker-log-tailer)
 [![DockerHub Pulls](https://img.shields.io/docker/pulls/realshaunoneill/docker-log-tailer)](https://hub.docker.com/r/realshaunoneill/docker-log-tailer 'DockerHub pulls')
 
 A simple script that listens to standard output logs of all Docker containers and sends them to 🚀 Rapid7 Log Search for centralized log management and analysis. This allows you to easily search and analyze your container logs in one place.
+
+⚠️ **This Repository is Not Official** ⚠️
+Please note that this repository is not an official project or affiliated with Rapid7. It is a community-driven effort that aims to provide the ability to easily send docker logs to log search. While every effort has been made to ensure the accuracy and reliability of the content in this repository, please be aware that it may not reflect official guidelines, specifications, or support.
 
 ## ✨ Features
 Automatically collects standard output logs from Docker containers
