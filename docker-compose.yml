@@ -1,7 +1,7 @@
 version: '3'
 services:
   log-tailer:
-    container_name: log-tailer
+    container_name: insight-log-tailer
     build:
       dockerfile: Dockerfile
     environment:

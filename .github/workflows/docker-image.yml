@@ -25,4 +25,4 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/log-tailer:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/insight-log-tailer:latest

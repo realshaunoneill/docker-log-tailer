@@ -1,5 +1,5 @@
 {
-  "name": "log-tailer",
+  "name": "insight-log-tailer",
   "version": "1.0.0",
   "description": "Streams docker container logs to the Rapid7 log service",
   "main": "index.js",
