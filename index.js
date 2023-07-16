@@ -5,7 +5,6 @@ const SEND_LOGS = process.env.SEND_LOGS;
 const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
 
-const LT_PREFIX = 'lt-';
 const LOG_STREAM_OPTIONS = {
     stdout: true,
     stderr: true,
@@ -28,30 +27,29 @@ if (!LOG_TOKEN) {
     });
 }
 
-const handleLogs = ({names, log, image, id}) => {
+const handleLogs = ({names, log, image, id, labels}) => {
     // Map through the names and remove any / from the start
     const filteredNames = names.map(name => name.replace('/', ''));
     
-    console.log(`${LT_PREFIX} Container: ${filteredNames} - Log: ${log}`);
+    console.log(`Container: ${filteredNames} - Log: ${log}`);
 
     if (LOG_TOKEN && SEND_LOGS) {
-        log.info({image, names: filteredNames, log, id});
+        log.info({image, names: filteredNames, log, id, labels});
     }
 };
 
 const run = async () => {
     const containers = await docker.listContainers();
-    console.log(`${LT_PREFIX} Watching containers for logs: `, containers.length);
+    console.log(`Watching containers for logs: `, containers.length);
 
-    containers.forEach(async ({Id, Names, Image}) => {
+    containers.forEach(async ({Id, Names, Image, Labels}) => {
         const dockerContainerInstance = docker.getContainer(Id);
-
         const logStream = await dockerContainerInstance.logs(LOG_STREAM_OPTIONS);
         
         logStream.on('data', chunk => {
             const logLine = chunk.toString('utf8').replace(/[^\x00-\x7F]/g, "");
-            if (!logLine.startsWith(LT_PREFIX)) {
-                handleLogs({names: Names, log: logLine, image: Image, id: Id});
+            if (!Labels['disablePostLogging']) {
+                handleLogs({names: Names, log: logLine, image: Image, id: Id, labels: Labels});
             }
         });
     });
