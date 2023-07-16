@@ -1,10 +1,12 @@
 version: '3'
 services:
   log-tailer:
+    container_name: log-tailer
     build:
       dockerfile: Dockerfile
     environment:
-      - LOG_TOKEN=
       - SEND_LOGS=
+      - LOG_TOKEN=
+      - LOG_REGION=
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

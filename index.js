@@ -5,14 +5,16 @@ const SEND_LOGS = process.env.SEND_LOGS;
 const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
 
+let log;
+
 if (!LOG_TOKEN) {
     console.error('LOG_TOKEN is not defined, logs will not be sent to Rapid7 Insight Platform');
+} else {
+    log = new Logger({
+        token: LOG_TOKEN,
+        region: LOG_REGION
+    });
 }
-
-const log = new Logger({
-    token: LOG_TOKEN,
-    region: LOG_REGION
-});
 
 const docker = new Docker({socketPath: '/var/run/docker.sock'});
 
@@ -26,7 +28,8 @@ const getContainers = async () => {
 };
 
 const handleLogs = (containerName, log) => {
-    if (!SEND_LOGS || !LOG_TOKEN) {
+    if (!SEND_LOGS || !LOG_TOKEN || !log) {
+        
         return  console.log(`Container: ${containerName} - Log: ${log}`);
     }
 

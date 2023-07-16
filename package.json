@@ -13,7 +13,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+",
+    "url": "https://github.com/realshaunoneill/log-tailer.git"
+  },
   "author": "Shaun O'Neill",
   "license": "ISC"
 }
