@@ -1,7 +1,6 @@
 const Docker = require('dockerode');
 const Logger = require('r7insight_node');
 
-const SEND_LOGS = process.env.SEND_LOGS;
 const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
 
@@ -21,6 +20,7 @@ let log;
 if (!LOG_TOKEN) {
     console.error('LOG_TOKEN is not defined, logs will not be sent to Rapid7 Insight Platform');
 } else {
+    console.log('LOG_TOKEN is defined, logs will be sent to Rapid7 Insight Platform');
     log = new Logger({
         token: LOG_TOKEN,
         region: LOG_REGION
@@ -33,7 +33,7 @@ const handleLogs = ({names, log, image, id, labels}) => {
     
     console.log(`Container: ${filteredNames} - Log: ${log}`);
 
-    if (LOG_TOKEN && SEND_LOGS) {
+    if (LOG_TOKEN && LOG_REGION) {
         log.info({image, names: filteredNames, log, id, labels});
     }
 };
