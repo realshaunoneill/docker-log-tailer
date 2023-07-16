@@ -1,8 +1,14 @@
-const os = require('os');
-const Docker = require('dockerode');
-const Logger = require('r7insight_node');
+import 'dotenv/config'
+import os from 'os';
+import Docker from 'dockerode';
+import Logger from 'r7insight_node';
 
-const HOSTNAME = process.env.HOSTNAME;
+import {
+    doesLogsetExistForHost,
+    createNewLogset,
+} from './apiUtils.js';
+
+const HOSTNAME = process.env.HOSTNAME || os.hostname();
 const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
 
@@ -62,10 +68,18 @@ const searchForLogsFromContainer = async ({ Id, Names, Image, Labels }) => {
 };
 
 const run = async () => {
-    console.log(`Starting docker-logs-to-rapid7-insight-platform on ${HOSTNAME || os.hostname()}`);
-
     // Get the initial containers and listen for logs
     const containers = await getCurrentContainers();
+
+    // Get the current logsets in ops and verify that the container is in the list
+    const doesHostnameLogsetExist = await doesLogsetExistForHost(HOSTNAME);
+    if (!doesHostnameLogsetExist) {
+        console.log(`Logset for ${HOSTNAME} does not exist, creating...`);
+        const res = await createNewLogset(HOSTNAME);
+        if (res.ok) {
+            console.log(`Logset for ${HOSTNAME} created successfully`);
+        }
+    }
 
     containers.forEach(container => {
         searchForLogsFromContainer(container);

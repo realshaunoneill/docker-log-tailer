@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Streams docker container logs to the Rapid7 log service",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "dockerode": "3.3.5",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.1",
     "r7insight_node": "3.3.1"
   },
   "devDependencies": {},
