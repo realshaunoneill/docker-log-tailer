@@ -83,7 +83,7 @@ const searchForLogsFromContainer = async ({ Id, Names, Image, Labels }) => {
 
     logStream.on('data', chunk => {
         const logLine = chunk.toString('utf8').replace(/[^\x00-\x7F]/g, "");
-        if (logLine && !Labels['disableLogging'] || names.includes('log-tailer')) {
+        if (logLine && !Labels['disableLogging'] || (names && names.includes('log-tailer'))) {
             submitLogs({ names: Names, log: logLine, image: Image, id: Id, labels: Labels });
         }
     });
