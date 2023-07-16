@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import os from 'os';
 import Docker from 'dockerode';
-import Logger from 'r7insight_node';
+import fetch from 'node-fetch';
 
 import {
     getLogsetForName,
@@ -12,6 +12,8 @@ import {
 
 const HOSTNAME = process.env.HOSTNAME || os.hostname();
 const LOG_REGION = process.env.LOG_REGION;
+
+const WEBHOOK_URL = `https://${LOG_REGION.toLowerCase()}.webhook.logs.insight.rapid7.com/v1/noformat/`;
 
 const LOG_STREAM_OPTIONS = {
     stdout: true,
@@ -50,30 +52,31 @@ const getCurrentContainers = async () => {
 };
 
 const submitLogs = async ({ names, log, image, id, labels }) => {
-    // Map through the names and remove any / from the start
-    const filteredNames = names.map(name => name.replace('/', ''));
+    try {
+        // Map through the names and remove any / from the start
+        const filteredNames = names.map(name => name.replace('/', ''));
 
-    // Check if the log exists in the logset
-    const containerLog = await getLogForContainer(filteredNames[0], HOSTNAME);
+        // Check if the log exists in the logset
+        const containerLog = await getLogForContainer(filteredNames[0], HOSTNAME);
 
-    const logData = JSON.stringify({ image, names: filteredNames, log, id, labels });
-    if (!containerLog) {
-        // Create the log
-        console.log(`Log for ${filteredNames[0]} does not exist, creating...`);
-        const newLog = await createNewLog(filteredNames[0], HOSTNAME);
+        const logData = JSON.stringify({ image, names: filteredNames, log, id, labels });
+        if (!containerLog) {
+            // Create the log
+            console.log(`Log for ${filteredNames[0]} does not exist, creating...`);
+            const newLog = await createNewLog(filteredNames[0], HOSTNAME);
 
-        const r7Logger = new Logger({
-            token: newLog.tokens[0],
-            region: LOG_REGION
-        });
-        r7Logger.log(logData);
-    } else {
-        console.log(`Log for ${filteredNames[0]} exists, sending logs...`);
-        const r7Logger = new Logger({
-            token: containerLog.tokens[0],
-            region: LOG_REGION
-        });
-        r7Logger.log(logData);
+            await fetch(WEBHOOK_URL + newLog.tokens[0], {
+                method: 'POST',
+                body: logData
+            });
+        } else {
+            await fetch(WEBHOOK_URL + containerLog.tokens[0], {
+                method: 'POST',
+                body: logData
+            });
+        }
+    } catch (error) {
+        console.error(error);
     }
 };
 
@@ -96,7 +99,7 @@ const run = async () => {
     // Get the current logsets in ops and verify that the container is in the list
     const doesHostnameLogsetExist = await getLogsetForName(HOSTNAME);
     if (!doesHostnameLogsetExist) {
-        console.log(`Logset for ${HOSTNAME} does not exist, creating...`);
+        console.log(`Logset for host ${HOSTNAME} does not exist, creating...`);
         const res = await createNewLogset(HOSTNAME);
         if (res.ok) {
             console.log(`Logset for ${HOSTNAME} created successfully`);
@@ -104,7 +107,7 @@ const run = async () => {
     }
 
     containers.forEach(({ Id, Names, Image, Labels }) => {
-        searchForLogsFromContainer({id: Id, names: Names, image: Image, labels: Labels});
+        searchForLogsFromContainer({ id: Id, names: Names, image: Image, labels: Labels });
     });
 
     // if a docker event occurs from a container not in the above list, then re-get the containers

@@ -17,9 +17,10 @@ export const getLogsetForName = async (name) => {
 }
 
 export const getLogForContainer = async (containerName, hostname) => {
-    const logset = await getLogsetForName(hostname);
+    const logs = await getUsersLogs();
+    const logsInLogset = logs.filter(log => log.logsets_info.some(logset => logset.name.toLowerCase() === hostname.toLowerCase()));
 
-    return logset.logs_info.find(log => log.name.toLowerCase() === containerName.toLowerCase());
+    return logsInLogset.find(log => log.name.toLowerCase() === containerName.toLowerCase());
 };
 
 export const createNewLogset = async (logsetName) => {
