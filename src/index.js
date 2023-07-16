@@ -77,14 +77,14 @@ const submitLogs = async ({ names, log, image, id, labels }) => {
     }
 };
 
-const searchForLogsFromContainer = async ({ Id, Names, Image, Labels }) => {
-    const dockerContainerInstance = docker.getContainer(Id);
+const searchForLogsFromContainer = async ({ id, names, image, labels }) => {
+    const dockerContainerInstance = docker.getContainer(id);
     const logStream = await dockerContainerInstance.logs(LOG_STREAM_OPTIONS);
 
     logStream.on('data', chunk => {
         const logLine = chunk.toString('utf8').replace(/[^\x00-\x7F]/g, "");
-        if (logLine && !Labels['disableLogging'] || (names && names.includes('log-tailer'))) {
-            submitLogs({ names: Names, log: logLine, image: Image, id: Id, labels: Labels });
+        if (logLine && !labels['disableLogging'] || (names && names.includes('log-tailer'))) {
+            submitLogs({ names, log: logLine, image, id, labels });
         }
     });
 };
@@ -103,8 +103,8 @@ const run = async () => {
         }
     }
 
-    containers.forEach(container => {
-        searchForLogsFromContainer(container);
+    containers.forEach(({ Id, Names, Image, Labels }) => {
+        searchForLogsFromContainer({id: Id, names: Names, image: Image, labels: Labels});
     });
 
     // if a docker event occurs from a container not in the above list, then re-get the containers

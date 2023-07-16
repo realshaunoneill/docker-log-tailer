@@ -5,9 +5,9 @@ services:
     build:
       dockerfile: Dockerfile
     environment:
-      - HOSTNAME=testingDocker
-      - API_KEY=240ba119-3124-49a9-babc-45fc50fbfbfa
-      - LOG_REGION=eu
+      - HOSTNAME=
+      - API_KEY=
+      - LOG_REGION=
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
