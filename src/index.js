@@ -12,6 +12,7 @@ import {
 
 const HOSTNAME = process.env.HOSTNAME || os.hostname();
 const LOG_REGION = process.env.LOG_REGION;
+const DOCKER_PATH = process.env.DOCKER_PATH || '/var/run/docker.sock';
 
 const WEBHOOK_URL = `https://${LOG_REGION.toLowerCase()}.webhook.logs.insight.rapid7.com/v1/noformat/`;
 
@@ -22,7 +23,7 @@ const LOG_STREAM_OPTIONS = {
     follow: true,
 }
 
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+const docker = new Docker({ socketPath: DOCKER_PATH });
 if (!docker) {
     throw new Error('Docker is not defined, is the path correct? Exiting...');
 }

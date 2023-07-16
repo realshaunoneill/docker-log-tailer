@@ -11,13 +11,21 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node ./src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./src/index.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/realshaunoneill/log-tailer.git"
   },
-  "author": "Shaun O'Neill",
-  "license": "ISC"
+  "keywords": [
+    "docker",
+    "logs",
+    "tail",
+    "Rapid7"
+  ],
+  "author": {
+    "name": "Shaun O'Neill",
+    "url": "https://www.shaunoneill.com"
+  },
+  "license": "GPL-3.0"
 }
