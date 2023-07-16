@@ -27,7 +27,9 @@ if (!docker) {
 const handleLogs = ({names, log, image}) => {
     
     console.log(`${LT_PREFIX} Container: ${names} - Log: ${log}`);
-    log.info({image, names, log});
+    if (LOG_TOKEN && SEND_LOGS) {
+        log.info({image, names, log});
+    }
 };
 
 const run = async () => {
