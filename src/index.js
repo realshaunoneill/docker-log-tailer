@@ -25,7 +25,31 @@ if (!docker) {
     throw new Error('Docker is not defined, is the path correct? Exiting...');
 }
 
-const handleLogs = async ({ names, log, image, id, labels }) => {
+/**
+ * Verify that we get all the environment variables we need
+ */
+if (!process.env.API_KEY) {
+    throw new Error('API_KEY is not defined, exiting...');
+}
+
+if (!process.env.LOG_REGION) {
+    throw new Error('LOG_REGION is not defined, exiting...');
+}
+
+if (!process.env.HOSTNAME) {
+    console.warn(`HOSTNAME is not defined, using os.hostname() which is ${os.hostname()}}`);
+}
+
+/**
+ * Get the current containers that are running
+ * @returns 
+ */
+const getCurrentContainers = async () => {
+    const containers = await docker.listContainers();
+    return containers;
+};
+
+const submitLogs = async ({ names, log, image, id, labels }) => {
     // Map through the names and remove any / from the start
     const filteredNames = names.map(name => name.replace('/', ''));
 
@@ -37,8 +61,6 @@ const handleLogs = async ({ names, log, image, id, labels }) => {
         // Create the log
         console.log(`Log for ${filteredNames[0]} does not exist, creating...`);
         const newLog = await createNewLog(filteredNames[0], HOSTNAME);
-
-        console.log('New log', newLog);
 
         const r7Logger = new Logger({
             token: newLog.tokens[0],
@@ -55,23 +77,14 @@ const handleLogs = async ({ names, log, image, id, labels }) => {
     }
 };
 
-/**
- * Get the current containers that are running
- * @returns 
- */
-const getCurrentContainers = async () => {
-    const containers = await docker.listContainers();
-    return containers;
-};
-
 const searchForLogsFromContainer = async ({ Id, Names, Image, Labels }) => {
     const dockerContainerInstance = docker.getContainer(Id);
     const logStream = await dockerContainerInstance.logs(LOG_STREAM_OPTIONS);
 
     logStream.on('data', chunk => {
         const logLine = chunk.toString('utf8').replace(/[^\x00-\x7F]/g, "");
-        if (logLine && !Labels['disablePostLogging']) {
-            handleLogs({ names: Names, log: logLine, image: Image, id: Id, labels: Labels });
+        if (logLine && !Labels['disableLogging'] || names.includes('log-tailer')) {
+            submitLogs({ names: Names, log: logLine, image: Image, id: Id, labels: Labels });
         }
     });
 };
@@ -105,11 +118,11 @@ const run = async () => {
 
             // If we are not currently listening for logs from the container, then start listening
             if (!containers.find(container => container.Id === id)) {
-                // Then the container is not in the list, so re-get the containers
                 const newContainers = await getCurrentContainers();
                 const newInstance = newContainers.find(container => container.Id === id)
                 if (newInstance) {
                     console.log(`New container found: ${newInstance.Names}, listening for logs...`);
+                    containers.push(newInstance);
                     searchForLogsFromContainer(newInstance);
                 }
             }
