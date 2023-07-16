@@ -8,5 +8,6 @@ services:
       - SEND_LOGS=
       - LOG_TOKEN=
       - LOG_REGION=
+      - SILENT_MODE=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

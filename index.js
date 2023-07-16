@@ -4,6 +4,7 @@ const Logger = require('r7insight_node');
 const SEND_LOGS = process.env.SEND_LOGS;
 const LOG_TOKEN = process.env.LOG_TOKEN;
 const LOG_REGION = process.env.LOG_REGION;
+const SILENT_MODE = process.env.SILENT_MODE;
 
 let log;
 
@@ -19,31 +20,27 @@ if (!LOG_TOKEN) {
 const docker = new Docker({socketPath: '/var/run/docker.sock'});
 
 if (!docker) {
-    throw new Error('Docker is not defined, is the path correct?');
+    throw new Error('Docker is not defined, is the path correct? Exiting...');
 }
 
-const getContainers = async () => {
-    const containers = await docker.listContainers();
-    return containers;
-};
-
-const handleLogs = (containerName, log) => {
+const handleLogs = ({names, log, image}) => {
     if (!SEND_LOGS || !LOG_TOKEN || !log) {
-        
-        return  console.log(`Container: ${containerName} - Log: ${log}`);
+        return  console.log(`Container: ${names} - Log: ${log}`);
     }
 
-    // Send logs to Rapid7 Insight Platform
-    log.info({name: containerName, log});
+    log.info({image, names, log});
 };
 
 const run = async () => {
-    const containers = await getContainers();
-    console.log('Watching containers for logs: ', containers.length);
-    containers.forEach(async containerInfo => {
-        const dockerContainer = docker.getContainer(containerInfo.Id);
+    const containers = await docker.listContainers();
+    if (!SILENT_MODE) {
+        console.log('Watching containers for logs: ', containers.length);
+    }
+    console.log(containers);
+    containers.forEach(async ({Id, Names, Image}) => {
+        const dockerContainerInstance = docker.getContainer(Id);
 
-        const logStream = await dockerContainer.logs({
+        const logStream = await dockerContainerInstance.logs({
             stdout: true,
             stderr: true,
             tail: '0',
@@ -52,7 +49,7 @@ const run = async () => {
         
           logStream.on('data', (chunk) => {
             const logLine = chunk.toString('utf8');
-            handleLogs(containerInfo.Names, logLine);
+            handleLogs({names: Names, log: logLine, image: Image});
           });
     });
     

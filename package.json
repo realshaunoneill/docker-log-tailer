@@ -4,8 +4,8 @@
   "description": "Streams docker container logs to the Rapid7 log service",
   "main": "index.js",
   "dependencies": {
-    "dockerode": "^3.3.4",
-    "r7insight_node": "^3.3.1"
+    "dockerode": "3.3.5",
+    "r7insight_node": "3.3.1"
   },
   "devDependencies": {},
   "scripts": {
