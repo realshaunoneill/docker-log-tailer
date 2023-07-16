@@ -85,7 +85,7 @@ const searchForLogsFromContainer = async ({ id, names, image, labels }) => {
     const logStream = await dockerContainerInstance.logs(LOG_STREAM_OPTIONS);
 
     logStream.on('data', chunk => {
-        const logLine = chunk.toString('utf8').replace(/[^\x00-\x7F]/g, "");
+        const logLine = chunk.toString('utf8').replace(/[^\x20-\x7E]/g, "");
         if (logLine && !labels['disableLogging'] || (names && names.includes('log-tailer'))) {
             submitLogs({ names, log: logLine, image, id, labels });
         }
